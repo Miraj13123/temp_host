@@ -54,7 +54,6 @@ download_dotfile() {
 
 # Function to show download menu
 download_menu() {
-    clear
     echo "Download Dotfiles Menu"
     echo "----------------------"
     echo "1. Download Neovim dotfiles"
@@ -65,7 +64,7 @@ download_menu() {
     echo "[x]. Back to main menu : choose 'x' to return"
     echo ""
     
-    read -p "Enter your choice: " choice
+    read -p "Enter your choice: " choice < /dev/tty
     echo ""
     
     case $choice in
@@ -93,14 +92,13 @@ download_menu() {
             download_menu
             ;;
         x|X)
-            clear
-            #show_menu
+            return
             ;;
         *)
-            clear
             echo "================================="
             echo "Invalid choice, please try again."
             echo "================================="
+            read -p "Press Enter to continue..." < /dev/tty
             download_menu
             ;;
     esac
@@ -130,7 +128,8 @@ show_info() {
     echo "Dotfiles Installer"
     echo "This script manages the installation of dotfiles for Neovim, Kitty, Tmux, and Bash."
     echo "Ensure dotfiles are downloaded before running installation options."
-    echo "Repository: [Your GitHub repo URL here]"
+    echo "Repository: https://github.com/Miraj13123/dotfiles"
+    echo "Run remotely with: curl -fsSL https://raw.githubusercontent.com/Miraj13123/dotfiles/main/installer.sh | bash"
 }
 
 # Function to display the menu
@@ -141,7 +140,6 @@ show_menu() {
     local tmux_git=false
     local bash_git=false
     
-    # calling function to check .git file
     check_git "neovim" && neovim_git=true
     check_git "kitty" && kitty_git=true
     check_git "tmux" && tmux_git=true
@@ -191,75 +189,90 @@ show_menu() {
     echo "[x]. Exit : choose 'x' to exit"
     echo ""
     
-    # Read user input
-    read -p "Enter your choice: " choice
+    read -p "Enter your choice: " choice < /dev/tty
     echo ""
 
-    # Process user choice
-    if [ "$choice" = "0" ]; then
-        clear
-        download_dotfiles
-        show_menu
-    elif [ "$choice" = "1" ]; then
-        clear
-        if $all_downloaded; then
-            run_installer "neovim"
-            run_installer "kitty"
-            run_installer "tmux"
-            run_installer "bash"
-        else
-            echo "Dotfiles aren't fully downloaded. Please download dotfiles to continue."
-        fi
-        show_menu
-    elif [ "$choice" = "2" ]; then
-        clear
-        if $neovim_git; then
-            run_installer "neovim"
-        else
-            echo "Neovim dotfiles aren't available. Please download dotfiles to continue."
-        fi
-        show_menu
-    elif [ "$choice" = "3" ]; then
-        clear
-        if $kitty_git; then
-            run_installer "kitty"
-        else
-            echo "Kitty dotfiles aren't available. Please download dotfiles to continue."
-        fi
-        show_menu
-    elif [ "$choice" = "4" ]; then
-        clear
-        if $tmux_git; then
-            run_installer "tmux"
-        else
-            echo "Tmux dotfiles aren't available. Please download dotfiles to continue."
-        fi
-        show_menu
-    elif [ "$choice" = "5" ]; then
-        clear
-        if $bash_git; then
-            run_installer "bash"
-        else
-            echo "Bash dotfiles aren't available. Please download dotfiles to continue."
-        fi
-        show_menu
-    elif [ "$choice" = "6" ]; then
-        clear
-        show_info
-        show_menu
-    elif [ "$choice" = "x" ] || [ "$choice" = "X" ]; then
-        clear
-        echo "Exiting..."
-        exit 0
-    else
-        clear
-        echo "================================="
-        echo "Invalid choice, please try again."
-        echo "================================="
-        show_menu
-    fi
+    case $choice in
+        0)
+            download_dotfiles
+            show_menu
+            ;;
+        1)
+            if $all_downloaded; then
+                run_installer "neovim"
+                run_installer "kitty"
+                run_installer "tmux"
+                run_installer "bash"
+            else
+                echo "Dotfiles aren't fully downloaded. Please download dotfiles to continue."
+                read -p "Press Enter to continue..." < /dev/tty
+            fi
+            show_menu
+            ;;
+        2)
+            if $neovim_git; then
+                run_installer "neovim"
+            else
+                echo "Neovim dotfiles aren't available. Please download dotfiles to continue."
+                read -p "Press Enter to continue..." < /dev/tty
+            fi
+            show_menu
+            ;;
+        3)
+            if $kitty_git; then
+                run_installer "kitty"
+            else
+                echo "Kitty dotfiles aren't available. Please download dotfiles to continue."
+                read -p "Press Enter to continue..." < /dev/tty
+            fi
+            show_menu
+            ;;
+        4)
+            if $tmux_git; then
+                run_installer "tmux"
+            else
+                echo "Tmux dotfiles aren't available. Please download dotfiles to continue."
+                read -p "Press Enter to continue..." < /dev/tty
+            fi
+            show_menu
+            ;;
+        5)
+            if $bash_git; then
+                run_installer "bash"
+            else
+                echo "Bash dotfiles aren't available. Please download dotfiles to continue."
+                read -p "Press Enter to continue..." < /dev/tty
+            fi
+            show_menu
+            ;;
+        6)
+            show_info
+            read -p "Press Enter to continue..." < /dev/tty
+            show_menu
+            ;;
+        x|X)
+            echo "Exiting..."
+            exit 0
+            ;;
+        *)
+            echo "================================="
+            echo "Invalid choice, please try again."
+            echo "================================="
+            read -p "Press Enter to continue..." < /dev/tty
+            show_menu
+            ;;
+    esac
 }
 
+# Check dependencies
+if ! command -v curl &> /dev/null; then
+    echo "Error: curl is not installed. Please install it (e.g., sudo apt install curl)."
+    exit 1
+fi
+if ! command -v tar &> /dev/null; then
+    echo "Error: tar is not installed. Please install it (e.g., sudo apt install tar)."
+    exit 1
+fi
+
 # Main execution
-clear
 show_menu
