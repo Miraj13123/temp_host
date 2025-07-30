@@ -10,6 +10,7 @@ mkdir temp && cd temp
 
 ## step 2
 
+no need to download this repo manually, only copy paste this link and run
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Miraj13123/temp_host/main/installer.sh | bash
 ```
